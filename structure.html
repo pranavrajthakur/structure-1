@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Application Status Manager</title>
+
+<style>
+    body {
+        font-family: "Segoe UI", sans-serif;
+        background-color: #eef2f5;
+        padding: 20px;
+    }
+
+    header {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    header h1 {
+        color: #222;
+    }
+
+    .container {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 20px;
+    }
+
+    .box {
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+    }
+
+    label {
+        font-size: 14px;
+        display: block;
+        margin-top: 10px;
+    }
+
+    input, select {
+        width: 100%;
+        padding: 7px;
+        margin-top: 5px;
+    }
+
+    button {
+        margin-top: 15px;
+        padding: 10px;
+        width: 100%;
+        background-color: #28a745;
+        color: white;
+        border: none;
+        cursor: pointer;
+        border-radius: 4px;
+    }
+
+    button:hover {
+        background-color: #1e7e34;
+    }
+
+    .card {
+        border: 1px solid #ddd;
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 6px;
+    }
+
+    .card p {
+        margin: 4px 0;
+    }
+
+    .remove {
+        background: #dc3545;
+        margin-top: 8px;
+    }
+
+    .remove:hover {
+        background: #b02a37;
+    }
+
+    .summary {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 15px;
+    }
+
+    .summary div {
+        background: #f1f3f5;
+        padding: 10px;
+        width: 23%;
+        text-align: center;
+        border-radius: 6px;
+    }
+
+    @media(max-width: 800px) {
+        .container {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>Application Status Manager</h1>
+    <p>Track your placement & internship applications</p>
+</header>
+
+<div class="container">
+
+    <!-- FORM SECTION -->
+    <div class="box">
+        <h3>Add New Application</h3>
+
+        <form id="trackerForm">
+            <label>Organization Name</label>
+            <input type="text" id="org" required>
+
+            <label>Job / Internship Role</label>
+            <input type="text" id="job" required>
+
+            <label>Current Status</label>
+            <select id="status">
+                <option>Applied</option>
+                <option>Online Test</option>
+                <option>Interview</option>
+                <option>Selected</option>
+                <option>Rejected</option>
+            </select>
+
+            <label>Outcome</label>
+            <select id="outcome">
+                <option>Pending</option>
+                <option>Cleared</option>
+                <option>Rejected</option>
+            </select>
+
+            <label>Application Date</label>
+            <input type="date" id="applyDate" required>
+
+            <button type="submit">Save Application</button>
+        </form>
+    </div>
+
+    <!-- LIST + SUMMARY -->
+    <div class="box">
+        <h3>My Applications</h3>
+        <div id="cards"></div>
+
+        <h3>Overview</h3>
+        <div class="summary">
+            <div>Total<br><b id="countTotal">0</b></div>
+            <div>Interviews<br><b id="countInterview">0</b></div>
+            <div>Selected<br><b id="countSelected">0</b></div>
+            <div>Rejected<br><b id="countRejected">0</b></div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    let records = JSON.parse(localStorage.getItem("recordsData")) || [];
+
+    const form = document.getElementById("trackerForm");
+    const cardArea = document.getElementById("cards");
+
+    form.addEventListener("submit", function(e) {
+        e.preventDefault();
+
+        let record = {
+            org: org.value,
+            job: job.value,
+            status: status.value,
+            outcome: outcome.value,
+            date: applyDate.value
+        };
+
+        records.push(record);
+        updateStorage();
+        form.reset();
+    });
+
+    function updateStorage() {
+        localStorage.setItem("recordsData", JSON.stringify(records));
+        displayRecords();
+        calculateSummary();
+    }
+
+    function displayRecords() {
+        cardArea.innerHTML = "";
+
+        records.forEach((r, i) => {
+            let div = document.createElement("div");
+            div.className = "card";
+
+            div.innerHTML = `
+                <p><b>Company:</b> ${r.org}</p>
+                <p><b>Role:</b> ${r.job}</p>
+                <p><b>Status:</b> ${r.status}</p>
+                <p><b>Outcome:</b> ${r.outcome}</p>
+                <p><b>Date:</b> ${r.date}</p>
+                <button class="remove" onclick="removeRecord(${i})">Delete</button>
+            `;
+
+            cardArea.appendChild(div);
+        });
+    }
+
+    function removeRecord(index) {
+        records.splice(index, 1);
+        updateStorage();
+    }
+
+    function calculateSummary() {
+        countTotal.innerText = records.length;
+        countInterview.innerText = records.filter(r => r.status === "Interview").length;
+        countSelected.innerText = records.filter(r => r.status === "Selected").length;
+        countRejected.innerText = records.filter(r => r.outcome === "Rejected").length;
+    }
+
+    displayRecords();
+    calculateSummary();
+</script>
+
+</body>
+</html>
